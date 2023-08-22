@@ -5,9 +5,13 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.content.Context
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.DialogFragment
 import com.example.mvparchitecture.Model.Task
+import com.example.mvparchitecture.R
 import com.example.mvparchitecture.databinding.FragmentPopUpBinding
 
 class PopUpFragment : DialogFragment() {
@@ -31,20 +35,21 @@ class PopUpFragment : DialogFragment() {
     ): View? {
         binding = FragmentPopUpBinding.inflate(inflater, container, false)
         dialog?.window?.setGravity(Gravity.BOTTOM)
-//        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog?.window?.setBackgroundDrawableResource(R.drawable.bottomsheet)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // showSoftKeyboard(binding.edtnote)
-
         init()
 
     }
 
     private fun init() {
 
+       binding.edtnote.requestFocus()
         if (prevtask != null) {
             binding.edtnote.setText(prevtask?.note)
             binding.edtdes.setText(prevtask?.des)
@@ -74,6 +79,7 @@ class PopUpFragment : DialogFragment() {
 
         }
     }
+
 
 
     interface PopUpInterface {
