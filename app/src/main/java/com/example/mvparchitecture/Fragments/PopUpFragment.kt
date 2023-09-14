@@ -1,4 +1,4 @@
-package com.example.mvparchitecture.Model.Fragments
+package com.example.mvparchitecture.Fragments
 
 
 import android.os.Bundle

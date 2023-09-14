@@ -1,4 +1,4 @@
-package com.example.mvparchitecture.Model.Fragments.SignUp
+package com.example.mvparchitecture.Fragments.SignUp
 
 import android.os.Bundle
 import android.util.Log

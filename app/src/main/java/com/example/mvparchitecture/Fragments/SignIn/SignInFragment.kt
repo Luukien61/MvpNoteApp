@@ -1,4 +1,4 @@
-package com.example.mvparchitecture.Model.Fragments.SignIn
+package com.example.mvparchitecture.Fragments.SignIn
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

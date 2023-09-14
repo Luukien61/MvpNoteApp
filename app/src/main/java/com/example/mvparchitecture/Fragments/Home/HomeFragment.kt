@@ -1,18 +1,21 @@
-package com.example.mvparchitecture.Model.Fragments.Home
+package com.example.mvparchitecture.Fragments.Home
 
 
 import android.graphics.Canvas
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.mvparchitecture.Model.Fragments.PopUpFragment
+import com.example.mvparchitecture.Fragments.PopUpFragment
 import com.example.mvparchitecture.Model.Task
 import com.example.mvparchitecture.Presenter.Presenter
 import com.example.mvparchitecture.R
@@ -26,17 +29,21 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInterface{
 
     private lateinit var binding: FragmentHomeBinding
     private lateinit var auth: FirebaseAuth
-    private var listtask = ArrayList<Task>()
+    private val listtask by lazy { ArrayList<Task>() }
     private lateinit var usertask: DatabaseReference
     private lateinit var recycleAdapter: RecycleAdapter
     private lateinit var popUpFragment: PopUpFragment
     private lateinit var presenter: Presenter
+    private val listFlow = MutableLiveData<ArrayList<Task>>()
 
 
     override fun onCreateView(
@@ -50,12 +57,16 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         init()
         setevents()
+        observe()
         setswipe()
+    }
 
-
+    private fun observe() {
+        listFlow.observe(viewLifecycleOwner){
+            recycleAdapter.initlist(it)
+        }
     }
 
     private fun setswipe() {
@@ -152,8 +163,9 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
             .child(auth.currentUser!!.uid)
 
         getlisk()
+        Log.i("size home", listtask.size.toString())
         recycleAdapter = RecycleAdapter()
-        recycleAdapter.initlist(listtask!!)
+        //recycleAdapter.initlist(listtask!!)
         binding.recycleview.layoutManager = LinearLayoutManager(context)
         binding.recycleview.adapter = recycleAdapter
         popUpFragment = PopUpFragment()
@@ -164,7 +176,6 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
     }
 
     private fun getlisk() {
-
         usertask.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 listtask.clear()
@@ -178,7 +189,7 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
                         }
                     }
                 }
-                recycleAdapter.notifyDataSetChanged()
+                listFlow.value=(listtask)
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -186,17 +197,14 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
             }
 
         })
-
+        Log.i("size after", listtask.size.toString())
     }
 
 // show dialog
 
 
     fun showdialog() {
-        if (popUpFragment != null) {
-            childFragmentManager.beginTransaction().remove(popUpFragment!!).commit()
-
-        }
+        childFragmentManager.beginTransaction().remove(popUpFragment!!).commit()
         popUpFragment = PopUpFragment()
         popUpFragment.initlistener(this)
         popUpFragment.show(
@@ -207,7 +215,7 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
 
     override fun deleteswipe(id: Task) {
         usertask.child(id.id!!).removeValue().addOnCompleteListener {
-            if (it.isSuccessful) recycleAdapter.notifyDataSetChanged()
+            if (it.isSuccessful) //recycleAdapter.notifyDataSetChanged()
             Snackbar.make(binding.recycleview, "", Snackbar.LENGTH_SHORT).setAction(
                 "Undo Delete", object : View.OnClickListener {
                     override fun onClick(v: View?) {
@@ -224,7 +232,7 @@ class HomeFragment : Fragment(), Presenter.HomeAction , PopUpFragment.PopUpInter
         usertask.child(note.id.toString()).setValue(note).addOnCompleteListener {
             if(it.isSuccessful) Toast.makeText(requireActivity(), "Update", Toast.LENGTH_SHORT).show()
         }
-        recycleAdapter.notifyDataSetChanged()
+        //recycleAdapter.notifyDataSetChanged()
     }
 
     override fun addnewnotee(note: Task, mess : String) {
